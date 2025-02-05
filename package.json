@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc ; vite build",
-    "build-no-errors": "tsc ; vite build",
+    "build": "tsc && vite build",
+    "build-no-errors": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "types:supabase": "npx supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/supabase.ts"
+    "electron:dev": "electron electron/main.ts",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:win": "npm run build && electron-builder --windows",
+    "electron:build:mac": "npm run build && electron-builder --mac"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
@@ -67,6 +70,8 @@
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react-swc": "3.5.0",
     "autoprefixer": "^10.4.19",
+    "electron": "^34.0.2",
+    "electron-builder": "^25.1.8",
     "postcss": "^8.4.38",
     "tailwindcss": "3.4.1",
     "tempo-devtools": "^2.0.94",

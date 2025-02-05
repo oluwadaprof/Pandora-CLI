@@ -1,0 +1,32 @@
+appId: com.pandora.terminal
+productName: Pandora Terminal
+copyright: Copyright © 2024
+directories:
+  output: dist
+  buildResources: build
+files:
+  - dist/**/*
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development

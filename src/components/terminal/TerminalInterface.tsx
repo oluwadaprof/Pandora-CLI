@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import CommandHistory from "./CommandHistory";
 import CommandPrompt from "./CommandPrompt";
 import OutputDisplay from "./OutputDisplay";
+import FloatingPanel from "./FloatingPanel";
 import { motion, AnimatePresence } from "framer-motion";
+import { PanelRight } from "lucide-react";
 
-interface TerminalInterfaceProps {
-  onCommandExecute?: (command: string) => void;
-  initialDirectory?: string;
+interface Tab {
+  id: string;
+  title: string;
+  directory: string;
+  outputLines: OutputLine[];
 }
 
 interface OutputLine {
@@ -16,28 +19,34 @@ interface OutputLine {
   timestamp: string;
 }
 
+interface TerminalInterfaceProps {
+  onCommandExecute?: (command: string) => void;
+  initialDirectory?: string;
+}
+
 const TerminalInterface = ({
   onCommandExecute = () => {},
-  initialDirectory = "~/user",
+  initialDirectory = "~/work-env/warp-internal",
 }: TerminalInterfaceProps) => {
-  const [currentDirectory, setCurrentDirectory] = useState(initialDirectory);
-  const [outputLines, setOutputLines] = useState<OutputLine[]>([
+  const [tabs, setTabs] = useState<Tab[]>([
     {
       id: "1",
-      content: "Welcome to the Terminal Interface",
-      type: "output",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      content: 'Type "help" for a list of available commands',
-      type: "output",
-      timestamp: new Date().toISOString(),
+      title: "Terminal 1",
+      directory: initialDirectory,
+      outputLines: [
+        {
+          id: "welcome",
+          content: "Welcome to Terminal",
+          type: "output",
+          timestamp: new Date().toISOString(),
+        },
+      ],
     },
   ]);
+  const [activeTab, setActiveTab] = useState("1");
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const handleCommandSubmit = (command: string) => {
-    // Add command to output
     const newCommandLine: OutputLine = {
       id: Date.now().toString(),
       content: `$ ${command}`,
@@ -45,79 +54,64 @@ const TerminalInterface = ({
       timestamp: new Date().toISOString(),
     };
 
-    setOutputLines((prev) => [...prev, newCommandLine]);
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTab
+          ? {
+              ...tab,
+              outputLines: [...tab.outputLines, newCommandLine],
+            }
+          : tab,
+      ),
+    );
+
     onCommandExecute(command);
-
-    // Simulate command output
-    if (command.startsWith("cd ")) {
-      const newDir = command.split(" ")[1];
-      setCurrentDirectory((prev) => `${prev}/${newDir}`);
-    } else {
-      // Add mock output
-      const mockOutput: OutputLine = {
-        id: (Date.now() + 1).toString(),
-        content: `Executed command: ${command}`,
-        type: "output",
-        timestamp: new Date().toISOString(),
-      };
-      setOutputLines((prev) => [...prev, mockOutput]);
-    }
   };
 
-  const handleCommandSelect = (command: string) => {
-    handleCommandSubmit(command);
-  };
+  const activeTabData = tabs.find((tab) => tab.id === activeTab);
 
   return (
     <AnimatePresence>
       <motion.div
-        className="flex flex-col h-full bg-zinc-900 text-white rounded-lg overflow-hidden"
-        initial={{ scale: 0.9, opacity: 0 }}
+        className="flex flex-col h-full bg-[#1C1C1C] text-white rounded-lg overflow-hidden border border-zinc-800"
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         transition={{
           type: "spring",
           stiffness: 200,
           damping: 20,
-          duration: 0.3,
         }}
       >
-        <div className="h-8 bg-gray-800 flex items-center justify-between px-4 rounded-t-lg">
-          <span className="text-sm font-medium text-gray-400">
-            Pandora Interface
-          </span>
-          <div className="flex items-center gap-2">
-            <motion.button
-              className="w-3 h-3 rounded-full bg-yellow-500"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            />
-            <motion.button
-              className="w-3 h-3 rounded-full bg-green-500"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            />
-            <motion.button
-              className="w-3 h-3 rounded-full bg-red-500"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            />
-          </div>
-        </div>
-        <div className="flex-1 flex">
+        <div className="flex-1 flex bg-[#1C1C1C] relative">
           <div className="flex-1 flex flex-col">
             <div className="flex-1 relative">
-              <OutputDisplay lines={outputLines} />
+              <OutputDisplay lines={activeTabData?.outputLines || []} />
+              <button
+                onClick={() => setIsPanelOpen(!isPanelOpen)}
+                className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors"
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+              <AnimatePresence>
+                {isPanelOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="absolute top-12 right-2 z-50"
+                  >
+                    <FloatingPanel onClose={() => setIsPanelOpen(false)} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <CommandPrompt
-              currentDirectory={currentDirectory}
+              currentDirectory={activeTabData?.directory || initialDirectory}
               onCommandSubmit={handleCommandSubmit}
             />
           </div>
-          <CommandHistory onCommandSelect={handleCommandSelect} />
         </div>
       </motion.div>
     </AnimatePresence>
