@@ -1,6 +1,8 @@
 import { mockCommands, bashHelpText } from "./mockCommands";
 import { CommandResult } from "@/types/terminal";
 
+type MockCommandFunction = (args: string[]) => Promise<CommandResult>;
+
 export async function executeCommand(command: string): Promise<CommandResult> {
   const [cmd, ...args] = command.trim().split(/\s+/);
 
@@ -16,10 +18,12 @@ export async function executeCommand(command: string): Promise<CommandResult> {
     }
 
     // Check if command exists in mockCommands
-    if (cmd.toLowerCase() in mockCommands) {
-      return await mockCommands[cmd.toLowerCase() as keyof typeof mockCommands](
-        args,
-      );
+    const commandFn = mockCommands[
+      cmd.toLowerCase() as keyof typeof mockCommands
+    ] as MockCommandFunction | undefined;
+
+    if (commandFn) {
+      return await commandFn(args);
     }
 
     return {

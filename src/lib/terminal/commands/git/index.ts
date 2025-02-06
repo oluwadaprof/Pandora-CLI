@@ -1,13 +1,12 @@
-export * from "./add";
-export * from "./branch";
-export * from "./commit";
-export * from "./push";
-export * from "./pull";
-export * from "./merge";
-export * from "./rebase";
-export * from "./remote";
-export * from "./status";
-export * from "./tag";
+import { addCommand } from "./add";
+import { branchCommand } from "./branch";
+import { commitCommand } from "./commit";
+
+export const gitCommands = {
+  add: addCommand,
+  branch: branchCommand,
+  commit: commitCommand,
+};
 
 export const gitHelpText = `
 Git is a fast, scalable, distributed revision control system.

@@ -3,30 +3,27 @@ import { Tab, OutputLine } from "@/types/terminal";
 import { executeCommand } from "@/lib/terminal/commands";
 import { useComputerName } from "./useComputerName";
 
+const createNewTab = (directory: string): Tab => ({
+  id: Date.now().toString(),
+  title: directory,
+  directory: directory,
+  outputLines: [],
+  commandHistory: [],
+  historyIndex: -1,
+});
+
 export const useTerminal = (initialDirectory?: string) => {
   const computerName = useComputerName();
   const defaultDirectory = `${computerName}@${import.meta.env.VITE_USER || "user"}/Desktop`;
 
   const [tabs, setTabs] = useState<Tab[]>([
-    {
-      id: "1",
-      title: initialDirectory || defaultDirectory,
-      directory: initialDirectory || defaultDirectory,
-      outputLines: [],
-      commandHistory: [],
-      historyIndex: -1,
-    },
+    createNewTab(initialDirectory || defaultDirectory),
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const addTab = () => {
-    const newTab: Tab = {
-      id: Date.now().toString(),
-      title: initialDirectory || defaultDirectory,
-      directory: initialDirectory || defaultDirectory,
-      outputLines: [],
-    };
+    const newTab = createNewTab(initialDirectory || defaultDirectory);
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
   };
@@ -42,7 +39,6 @@ export const useTerminal = (initialDirectory?: string) => {
   };
 
   const handleCommandSubmit = async (command: string) => {
-    // Update command history
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTab
@@ -54,6 +50,7 @@ export const useTerminal = (initialDirectory?: string) => {
           : tab,
       ),
     );
+
     const currentDirectory =
       tabs.find((tab) => tab.id === activeTab)?.directory || defaultDirectory;
 
