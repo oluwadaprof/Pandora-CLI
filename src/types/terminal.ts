@@ -30,3 +30,8 @@ export interface WindowControlsProps {
   onMaximize: () => void;
   onClose: () => void;
 }
+
+export interface CommandResult {
+  content: string;
+  type: "output" | "error";
+}
