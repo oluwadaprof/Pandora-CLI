@@ -1,146 +1,181 @@
-import { app, BrowserWindow, ipcMain, ipcRenderer } from "electron";
+import { app, BrowserWindow, ipcMain, session, dialog } from "electron";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import { exec } from "child_process";
-import path from "path";
-import os from "os";
-import fs from "fs";
-import { exec } from "child_process";
+import { setupPermissionHandlers } from "../src/lib/permissions";
+
+let mainWindow: BrowserWindow | null = null;
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: false,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      enableRemoteModule: true,
+      permissions: [
+        "clipboard-read",
+        "clipboard-sanitized-write",
+        "media",
+        "display-capture",
+        "mediaKeySystem",
+        "geolocation",
+        "notifications",
+        "midi",
+        "midiSysex",
+        "pointerLock",
+        "fullscreen",
+        "openExternal",
+      ],
     },
     titleBarStyle: "hiddenInset",
   });
 
-  if (process.env.NODE_ENV === "development") {
-    win.loadURL("http://localhost:5173");
-  } else {
-    win.loadFile(path.join(__dirname, "../dist/index.html"));
-  }
-}
-
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+  // Set up CSP
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [
+          "default-src 'self' https: http: data: 'unsafe-inline' 'unsafe-eval';",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+          "style-src 'self' 'unsafe-inline';",
+          "img-src 'self' data: https: http:;",
+          "connect-src 'self' https: http: ws: wss:;",
+        ],
+      },
+    });
   });
-});
 
-// Window control operations
-ipcMain.handle("window:minimize", () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) win.minimize();
-});
+  // Set up permission handlers
+  setupPermissionHandlers(mainWindow);
 
-ipcMain.handle("window:maximize", () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) {
-    if (win.isMaximized()) {
-      win.unmaximize();
-    } else {
-      win.maximize();
-    }
+  // Handle file system permissions
+  mainWindow.webContents.session.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      const allowedPermissions = [
+        "media",
+        "display-capture",
+        "mediaKeySystem",
+        "geolocation",
+        "notifications",
+        "midi",
+        "midiSysex",
+        "pointerLock",
+        "fullscreen",
+        "openExternal",
+      ];
+
+      if (allowedPermissions.includes(permission)) {
+        callback(true);
+      } else {
+        dialog
+          .showMessageBox(mainWindow!, {
+            type: "question",
+            buttons: ["Allow", "Deny"],
+            message: `The application is requesting ${permission} permission`,
+            detail: "Do you want to allow this?",
+          })
+          .then(({ response }) => {
+            callback(response === 0);
+          });
+      }
+    },
+  );
+
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
   }
-});
 
-ipcMain.handle("window:close", () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) win.close();
-});
-
-// File system operations
-ipcMain.handle("fs:pwd", async () => {
-  return process.cwd();
-});
-
-ipcMain.handle("fs:ls", async (_, dirPath?: string) => {
-  const targetPath = dirPath || process.cwd();
-  return fs.readdirSync(targetPath);
-});
-
-ipcMain.handle("fs:cd", async (_, dirPath: string) => {
-  try {
-    process.chdir(dirPath);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle("fs:cat", async (_, filePath: string) => {
-  try {
-    const content = fs.readFileSync(filePath, "utf8");
-    return { success: true, data: content };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle("fs:mkdir", async (_, dirPath: string) => {
-  try {
-    fs.mkdirSync(dirPath, { recursive: true });
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle("fs:touch", async (_, filePath: string) => {
-  try {
-    fs.writeFileSync(filePath, "");
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle(
-  "fs:rm",
-  async (_, filePath: string, options?: { recursive?: boolean }) => {
+  // File system operations
+  ipcMain.handle("fs:pwd", async () => process.cwd());
+  ipcMain.handle("fs:ls", async (_, dirPath?: string) => {
+    const targetPath = dirPath || process.cwd();
+    return fs.readdirSync(targetPath);
+  });
+  ipcMain.handle("fs:cd", async (_, dirPath: string) => {
     try {
-      fs.rmSync(filePath, { recursive: options?.recursive || false });
+      process.chdir(dirPath);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error.message };
     }
-  },
-);
+  });
 
-ipcMain.handle("fs:cp", async (_, src: string, dest: string) => {
-  try {
-    fs.copyFileSync(src, dest);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
+  // System information
+  ipcMain.handle("system:computerName", async () => os.hostname());
 
-ipcMain.handle("fs:mv", async (_, src: string, dest: string) => {
-  try {
-    fs.renameSync(src, dest);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
+  // Network operations
+  ipcMain.handle("net:request", async (_, url: string) => {
+    try {
+      const response = await fetch(url);
+      return { success: true, data: await response.text() };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 
-ipcMain.handle("system:computerName", async () => {
-  return os.hostname();
-});
+  // Process management
+  ipcMain.handle("process:execute", async (_, command: string) => {
+    try {
+      const { stdout, stderr } = await exec(command);
+      return { success: true, stdout, stderr };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Window control operations
+  ipcMain.handle("window:minimize", () => mainWindow?.minimize());
+  ipcMain.handle("window:maximize", () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow?.unmaximize();
+    } else {
+      mainWindow?.maximize();
+    }
+  });
+  ipcMain.handle("window:close", () => mainWindow?.close());
+}
+
+app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+// Handle permission requests for file system operations
+app.on("will-finish-launching", () => {
+  app.on("open-file", (event, path) => {
+    event.preventDefault();
+    if (mainWindow) {
+      mainWindow.webContents.send("file-opened", path);
+    }
+  });
+});
+
+// Handle permission requests for network operations
+app.on(
+  "certificate-error",
+  (event, webContents, url, error, certificate, callback) => {
+    event.preventDefault();
+    callback(true);
+  },
+);
+
+// Handle Squirrel events for Windows installer
+if (require("electron-squirrel-startup")) app.quit();

@@ -7,8 +7,11 @@ directories:
 files:
   - dist/**/*
   - package.json
-  - main.ts 
-  - index.js 
+  - electron/**/*
+asar: true
+protocol:
+  name: Pandora Terminal
+  schemes: ['pandora']
 win:
   target:
     - target: nsis
@@ -17,6 +20,19 @@ win:
     - target: portable
       arch:
         - x64
+  requestedExecutionLevel: highestAvailable
+  signAndEditExecutable: true
+  certificateFile: ${env.WINDOWS_PFX_FILE}
+  certificatePassword: ${env.WINDOWS_PFX_PASSWORD}
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Pandora Terminal
+  uninstallDisplayName: Pandora Terminal
+  artifactName: PandoraTerminal-${version}.${ext}
 mac:
   target:
     - target: dmg
@@ -27,8 +43,39 @@ mac:
       arch:
         - x64
         - arm64
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  notarize: true
+  notarizeOptions:
+    appBundleId: com.pandora.terminal
+    appleId: ${env.APPLE_ID}
+    appleIdPassword: ${env.APPLE_ID_PASSWORD}
+    teamId: ${env.APPLE_TEAM_ID}
 linux:
   target:
     - AppImage
     - deb
+    - rpm
   category: Development
+  desktop:
+    Terminal: true
+    Type: Application
+    Categories: Development;System;TerminalEmulator
+    MimeType: x-scheme-handler/pandora
+  permissions:
+    - allow-file-access
+    - allow-network-access
+    - allow-process-management
+protocols:
+  - name: Pandora Terminal
+    schemes:
+      - pandora
+forceCodeSigning: true
+publish:
+  provider: github
+  owner: PandoraTerminal
+  repo: pandora-terminal
+  private: false
+  releaseType: draft

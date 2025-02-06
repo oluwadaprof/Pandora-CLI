@@ -1,17 +1,56 @@
-import React from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState } from "react";
 
 interface CommandPromptProps {
   onCommandSubmit?: (command: string) => void;
+  commandHistory?: string[];
+  historyIndex?: number;
+  onHistoryChange?: (index: number) => void;
 }
 
-const CommandPrompt = ({ onCommandSubmit = () => {} }: CommandPromptProps) => {
-  const [command, setCommand] = React.useState("");
+const CommandPrompt = ({
+  onCommandSubmit = () => {},
+  commandHistory = [],
+  historyIndex = -1,
+  onHistoryChange = () => {},
+}: CommandPromptProps) => {
+  const [command, setCommand] = useState("");
+  const [savedCommand, setSavedCommand] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!command.trim()) return;
     onCommandSubmit(command);
     setCommand("");
+    setSavedCommand("");
+    onHistoryChange(-1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    } else if (e.key === "ArrowUp" && !command) {
+      e.preventDefault();
+      if (historyIndex === -1) {
+        setSavedCommand(command);
+      }
+      if (historyIndex < commandHistory.length - 1) {
+        const newIndex = historyIndex + 1;
+        onHistoryChange(newIndex);
+        setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      }
+    } else if (e.key === "ArrowDown" && !command) {
+      e.preventDefault();
+      if (historyIndex > -1) {
+        const newIndex = historyIndex - 1;
+        onHistoryChange(newIndex);
+        if (newIndex === -1) {
+          setCommand(savedCommand);
+        } else {
+          setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+        }
+      }
+    }
   };
 
   return (
@@ -22,12 +61,7 @@ const CommandPrompt = ({ onCommandSubmit = () => {} }: CommandPromptProps) => {
           <textarea
             value={command}
             onChange={(e) => setCommand(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
+            onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent border-none text-white font-mono text-sm focus:outline-none resize-none leading-6 min-h-[24px] max-h-[120px] overflow-y-auto"
             placeholder="Enter command..."
             spellCheck={false}
