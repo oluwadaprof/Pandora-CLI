@@ -9,9 +9,9 @@ files:
   - package.json
   - electron/**/*
 asar: true
-protocol:
-  name: Pandora Terminal
-  schemes: ['pandora']
+protocols:
+  - name: Pandora Terminal
+    schemes: ['pandora']
 win:
   target:
     - target: nsis
@@ -48,11 +48,6 @@ mac:
   hardenedRuntime: true
   gatekeeperAssess: false
   notarize: true
-  notarizeOptions:
-    appBundleId: com.pandora.terminal
-    appleId: ${env.APPLE_ID}
-    appleIdPassword: ${env.APPLE_ID_PASSWORD}
-    teamId: ${env.APPLE_TEAM_ID}
 linux:
   target:
     - AppImage
@@ -64,14 +59,6 @@ linux:
     Type: Application
     Categories: Development;System;TerminalEmulator
     MimeType: x-scheme-handler/pandora
-  permissions:
-    - allow-file-access
-    - allow-network-access
-    - allow-process-management
-protocols:
-  - name: Pandora Terminal
-    schemes:
-      - pandora
 forceCodeSigning: true
 publish:
   provider: github
