@@ -7,6 +7,8 @@ directories:
 files:
   - dist/**/*
   - package.json
+  - main.ts 
+  - index.js 
 win:
   target:
     - target: nsis
