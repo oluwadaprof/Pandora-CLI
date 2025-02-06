@@ -4,7 +4,9 @@ import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 
+// Initialize Tempo Devtool
 import { TempoDevtools } from "tempo-devtools";
+import "./lib/electron";
 TempoDevtools.init();
 
 const basename = import.meta.env.BASE_URL;

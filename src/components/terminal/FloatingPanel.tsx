@@ -1,26 +1,54 @@
-import React from "react";
-import {
-  ChevronDown,
-  UserPlus,
-  Plus,
-  FileText,
-  X,
-  Search,
-  Trash,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Search, X, User, HelpCircle, Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface FloatingPanelProps {
   onClose: () => void;
+  className?: string;
 }
 
-const FloatingPanel = ({ onClose }: FloatingPanelProps) => {
+const FloatingPanel = ({ onClose, className }: FloatingPanelProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
   return (
-    <div className="absolute top-0 right-0 w-[300px] bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/40 rounded-xl shadow-2xl overflow-hidden">
+    <div
+      className={cn(
+        "w-[300px] bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/40 rounded-xl shadow-2xl overflow-hidden flex flex-col h-[400px]",
+        className,
+      )}
+    >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-zinc-800/40 flex items-center justify-between">
-        <div className="text-[15px] font-medium text-zinc-200">Warp Drive</div>
-        <div className="flex items-center gap-3">
-          <button className="text-zinc-400 hover:text-zinc-300">
+      <div className="h-12 px-4 border-b border-zinc-800/40 flex items-center justify-between">
+        <div className="flex-1 flex items-center min-w-0">
+          {!isSearching ? (
+            <div className="text-[15px] font-medium text-zinc-200/80">
+              Search Commands
+            </div>
+          ) : (
+            <Input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="bg-transparent border-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 pl-0 h-8"
+              autoFocus
+            />
+          )}
+        </div>
+        <div className="flex items-center gap-3 ml-2">
+          <button
+            onClick={() => {
+              setIsSearching(!isSearching);
+              if (!isSearching) {
+                setSearchTerm("");
+              }
+            }}
+            className="text-zinc-400 hover:text-zinc-300"
+          >
             <Search className="w-[18px] h-[18px]" />
           </button>
           <button
@@ -33,74 +61,35 @@ const FloatingPanel = ({ onClose }: FloatingPanelProps) => {
       </div>
 
       {/* Content */}
-      <div className="p-1">
-        {/* Acme Inc Section */}
-        <div>
-          <div className="flex items-center justify-between p-2 rounded-md">
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] text-zinc-200">Acme Inc.</span>
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+      <ScrollArea className="flex-1">
+        <div className="p-4">
+          {searchTerm ? (
+            <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
+              <Search className="w-12 h-12 mb-4 opacity-50" />
+              <p className="text-sm">No results found</p>
+              <p className="text-xs opacity-75">Try a different search term</p>
             </div>
-            <div className="flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-zinc-400" />
-              <Plus className="w-4 h-4 text-zinc-400" />
+          ) : (
+            <div className="text-center text-zinc-400 py-8">
+              <p className="text-sm">Start typing to search commands</p>
             </div>
-          </div>
-
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <span className="text-yellow-500/90 font-mono text-sm">$_</span>
-              <span className="text-[14px] text-zinc-200">
-                Connect to Staging Server
-              </span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <span className="text-yellow-500/90 font-mono text-sm">$_</span>
-              <span className="text-[14px] text-zinc-200">DB Fields</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <FileText className="w-4 h-4 text-blue-400/90" />
-              <span className="text-[14px] text-zinc-200">
-                Getting started with Acme Inc. Staging
-              </span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <X className="w-4 h-4 text-pink-400/90" />
-              <span className="text-[14px] text-zinc-200">
-                Tokens and Secrets
-              </span>
-            </div>
-          </div>
+          )}
         </div>
+      </ScrollArea>
 
-        {/* Personal Section */}
-        <div className="mt-2">
-          <div className="flex items-center justify-between p-2 rounded-md">
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] text-zinc-200">Personal</span>
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
-            </div>
-            <Plus className="w-4 h-4 text-zinc-400" />
-          </div>
-
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <span className="text-yellow-500/90 font-mono text-sm">$_</span>
-              <span className="text-[14px] text-zinc-200">
-                Ensure .ssh folder has correct permissi...
-              </span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <FileText className="w-4 h-4 text-blue-400/90" />
-              <span className="text-[14px] text-zinc-200">
-                Getting started with Notebooks
-              </span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800/50">
-              <Trash className="w-4 h-4 text-zinc-400" />
-              <span className="text-[14px] text-zinc-200">Trash</span>
-            </div>
-          </div>
+      {/* Bottom Sheet */}
+      <div className="mt-auto">
+        <Separator className="bg-zinc-800/40" />
+        <div className="p-2 flex justify-end gap-2">
+          <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors">
+            <User className="w-4 h-4" />
+          </button>
+          <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors">
+            <HelpCircle className="w-4 h-4" />
+          </button>
+          <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors">
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

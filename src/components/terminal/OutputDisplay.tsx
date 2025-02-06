@@ -1,67 +1,93 @@
-import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import React, { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Folder } from "lucide-react";
 
 interface OutputLine {
   id: string;
   content: string;
   type: "command" | "output" | "error";
-  timestamp: string;
 }
 
 interface OutputDisplayProps {
   lines?: OutputLine[];
+  currentDirectory?: string;
 }
 
 const OutputDisplay = ({
-  lines = [
-    {
-      id: "1",
-      content: "$ ls -la",
-      type: "command",
-      timestamp: "2024-01-01 10:00:00",
-    },
-    {
-      id: "2",
-      content:
-        "total 32\ndrwxr-xr-x  2 user group 4096 Jan 1 10:00 .\ndrwxr-xr-x 15 user group 4096 Jan 1 10:00 ..",
-      type: "output",
-      timestamp: "2024-01-01 10:00:01",
-    },
-    {
-      id: "3",
-      content: "$ cd invalid-directory",
-      type: "command",
-      timestamp: "2024-01-01 10:00:02",
-    },
-    {
-      id: "4",
-      content: "cd: no such file or directory: invalid-directory",
-      type: "error",
-      timestamp: "2024-01-01 10:00:03",
-    },
-  ],
+  lines = [],
+  currentDirectory = "~/user",
 }: OutputDisplayProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current && viewportRef.current) {
+      const scrollElement = scrollRef.current;
+      const viewportElement = viewportRef.current;
+      viewportElement.scrollTop = scrollElement.scrollHeight;
+    }
+  }, [lines]);
+
+  // Split directory into username and path
+  const [username, ...pathParts] = currentDirectory.split("/");
+  const path = `~/${pathParts.join("/")}`;
+
+  // Group command and its output together
+  const groupedLines: { command: OutputLine; output?: OutputLine }[] = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    groupedLines.push({
+      command: lines[i],
+      output: lines[i + 1],
+    });
+  }
+
   return (
-    <div className="w-full h-full bg-black rounded-lg p-4">
-      <ScrollArea className="h-full">
-        <div className="space-y-2 font-mono text-sm">
-          {lines.map((line) => (
-            <div
-              key={line.id}
-              className={`
-                ${line.type === "command" ? "text-green-400" : ""}
-                ${line.type === "output" ? "text-gray-300" : ""}
-                ${line.type === "error" ? "text-red-400" : ""}
-              `}
-            >
-              <span className="text-gray-500 text-xs mr-2">
-                [{line.timestamp}]
-              </span>
-              {line.content}
-            </div>
-          ))}
+    <div className="absolute inset-0 bg-black rounded-t-lg">
+      <div
+        className="h-full overflow-y-auto scrollbar-none pr-4"
+        ref={viewportRef}
+      >
+        <div className="p-4 space-y-4 font-mono text-sm" ref={scrollRef}>
+          <AnimatePresence initial={false}>
+            {groupedLines.map(({ command, output }) => (
+              <motion.div
+                key={command.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30,
+                  mass: 0.5,
+                }}
+                className="space-y-1"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#87d441] flex items-center gap-1">
+                      <Folder className="w-3.5 h-3.5" />
+                      {username}
+                    </span>
+                    <span className="text-[#c678dd]">MINGW64</span>
+                    <span className="text-[#61afef]">{path}</span>
+                    <span className="text-[#87d441] font-bold">$</span>
+                    <span className="text-white">
+                      {command.content.replace("$ ", "")}
+                    </span>
+                  </div>
+                  {output && (
+                    <div
+                      className={`pl-5 ${output.type === "error" ? "text-red-400" : "text-gray-300"}`}
+                    >
+                      <span>{output.content}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

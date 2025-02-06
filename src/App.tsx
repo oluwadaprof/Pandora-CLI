@@ -4,6 +4,7 @@ import Home from "./components/home";
 import routes from "tempo-routes";
 
 function App() {
+  // Tempo routes
   const tempoRoutes =
     import.meta.env.VITE_TEMPO === "true" ? useRoutes(routes) : null;
 
@@ -12,6 +13,8 @@ function App() {
       {tempoRoutes}
       <Routes>
         <Route path="/" element={<Home />} />
+        {/* Add this before any catchall route */}
+        {import.meta.env.VITE_TEMPO === "true" && <Route path="/tempobook/*" />}
       </Routes>
     </Suspense>
   );
