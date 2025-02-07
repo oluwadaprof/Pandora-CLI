@@ -1,9 +1,13 @@
 import { app, BrowserWindow, ipcMain, session, dialog } from "electron";
-import * as path from "path";
-import * as os from "os";
-import * as fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import os from "os";
+import fs from "fs";
 import { exec } from "child_process";
 import { setupPermissionHandlers } from "./permissions";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 

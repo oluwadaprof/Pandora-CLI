@@ -2,7 +2,7 @@
   "name": "starter",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/electron/main.js",
   "description": "A modern terminal interface built with React, TypeScript, and Vite.",
   "author": "Israel <adeekotobiloab8@gmail.com>",
