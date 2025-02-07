@@ -21,9 +21,7 @@ win:
       arch:
         - x64
   requestedExecutionLevel: highestAvailable
-  signAndEditExecutable: true
-  certificateFile: ${env.WINDOWS_PFX_FILE}
-  certificatePassword: ${env.WINDOWS_PFX_PASSWORD}
+  publisherName: "Pandora Terminal"
 nsis:
   oneClick: false
   perMachine: true
@@ -59,7 +57,6 @@ linux:
     Type: Application
     Categories: Development;System;TerminalEmulator
     MimeType: x-scheme-handler/pandora
-forceCodeSigning: true
 publish:
   provider: github
   owner: PandoraTerminal
