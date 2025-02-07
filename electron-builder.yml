@@ -31,9 +31,6 @@ nsis:
   shortcutName: Pandora Terminal
   uninstallDisplayName: Pandora Terminal
   artifactName: PandoraTerminal-Setup-${version}.${ext}
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
-  installerHeaderIcon: build/icon.ico
   runAfterFinish: true
 mac:
   target:
