@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "electron/main.ts",
+  "main": "dist/electron/main.js",
   "description": "A modern terminal interface built with React, TypeScript, and Vite.",
   "author": "Israel <adeekotobiloab8@gmail.com>",
   "scripts": {
@@ -13,9 +13,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "electron:dev": "electron electron/main.ts",
-    "electron:build": "npm run build && electron-builder",
-    "electron:build:win": "npm run build && electron-builder --windows",
-    "electron:build:mac": "npm run build && electron-builder --mac"
+    "electron:build": "npm run build && tsc -p electron/tsconfig.json && electron-builder",
+    "electron:build:win": "npm run build && tsc -p electron/tsconfig.json && electron-builder --windows",
+    "electron:build:mac": "npm run build && tsc -p electron/tsconfig.json && electron-builder --mac"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",

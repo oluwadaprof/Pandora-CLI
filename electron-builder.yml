@@ -2,12 +2,12 @@ appId: com.pandora.terminal
 productName: Pandora Terminal
 copyright: Copyright © 2024
 directories:
-  output: dist
+  output: dist-electron
   buildResources: build
 files:
   - dist/**/*
+  - dist/electron/**/*
   - package.json
-  - electron/**/*
 asar: true
 protocols:
   - name: Pandora Terminal
@@ -30,7 +30,11 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: Pandora Terminal
   uninstallDisplayName: Pandora Terminal
-  artifactName: PandoraTerminal-${version}.${ext}
+  artifactName: PandoraTerminal-Setup-${version}.${ext}
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+  runAfterFinish: true
 mac:
   target:
     - target: dmg
