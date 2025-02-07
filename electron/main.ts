@@ -3,7 +3,7 @@ import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import { exec } from "child_process";
-import { setupPermissionHandlers } from "../src/lib/permissions";
+import { setupPermissionHandlers } from "./permissions";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -16,7 +16,6 @@ function createWindow() {
       contextIsolation: false,
       webSecurity: true,
       allowRunningInsecureContent: false,
-      enableRemoteModule: true,
       permissions: [
         "clipboard-read",
         "clipboard-sanitized-write",
@@ -91,7 +90,7 @@ function createWindow() {
     mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+    mainWindow.loadFile(path.join(__dirname, "../index.html"));
   }
 
   // File system operations
