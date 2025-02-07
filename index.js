@@ -1,1 +1,1 @@
-import './main.ts';
+require("./main.ts");
