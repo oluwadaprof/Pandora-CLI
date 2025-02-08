@@ -44,8 +44,13 @@ const TerminalInterface = ({
   };
 
   const handleCommand = async (command: string) => {
-    await handleCommandSubmit(command);
-    onCommandExecute(command);
+    try {
+      // Execute command and get result
+      await handleCommandSubmit(command);
+      onCommandExecute(command);
+    } catch (error) {
+      console.error("Error executing command:", error);
+    }
   };
 
   const handleResize = (

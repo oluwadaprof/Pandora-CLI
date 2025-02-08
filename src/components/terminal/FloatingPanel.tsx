@@ -10,7 +10,10 @@ interface FloatingPanelProps {
   className?: string;
 }
 
-const FloatingPanel = ({ onClose, className }: FloatingPanelProps) => {
+const FloatingPanel: React.FC<FloatingPanelProps> = ({
+  onClose,
+  className,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 

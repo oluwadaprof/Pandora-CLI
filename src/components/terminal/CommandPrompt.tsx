@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { commandPredictor } from "@/lib/ai/commandPrediction";
+import { correctCommand } from "@/lib/ai/commandCorrection";
+import CommandSuggestions from "./CommandSuggestions";
+import { toast } from "@/components/ui/use-toast";
 
 interface CommandPromptProps {
   onCommandSubmit?: (command: string) => void;
@@ -14,22 +18,58 @@ const CommandPrompt = ({
   onHistoryChange = () => {},
 }: CommandPromptProps) => {
   const [command, setCommand] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [savedCommand, setSavedCommand] = useState("");
+
+  useEffect(() => {
+    if (command.trim()) {
+      const predictions = commandPredictor.predictNext(command);
+      setSuggestions(predictions);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [command]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!command.trim()) return;
-    onCommandSubmit(command);
+
+    const { corrected, isCorrection } = correctCommand(command);
+
+    if (isCorrection) {
+      toast({
+        title: "Command Corrected",
+        description: `Using '${corrected}' instead of '${command}'`,
+        duration: 3000,
+      });
+    }
+
+    commandPredictor.addCommand(corrected);
+    onCommandSubmit(corrected);
     setCommand("");
     setSavedCommand("");
     onHistoryChange(-1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle Escape key to hide suggestions
+    if (e.key === "Escape") {
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Handle command submission
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
-    } else if (e.key === "ArrowUp" && !command) {
+      return;
+    }
+
+    // Handle command history navigation
+    if (e.key === "ArrowUp" && !command) {
       e.preventDefault();
       if (historyIndex === -1) {
         setSavedCommand(command);
@@ -53,8 +93,19 @@ const CommandPrompt = ({
     }
   };
 
+  const handleSuggestionSelect = (suggestion: string) => {
+    setCommand(suggestion);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
   return (
-    <div className="flex flex-col p-2 bg-gray-900 border-t border-gray-700">
+    <div className="flex flex-col p-2 bg-gray-900 border-t border-gray-700 relative">
+      <CommandSuggestions
+        suggestions={suggestions}
+        onSelect={handleSuggestionSelect}
+        visible={showSuggestions && suggestions.length > 0}
+      />
       <form onSubmit={handleSubmit} className="w-full">
         <div className="flex items-start gap-2">
           <span className="text-white font-mono text-sm leading-6">$</span>

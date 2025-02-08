@@ -39,27 +39,7 @@ export const useTerminal = (initialDirectory?: string) => {
   };
 
   const handleCommandSubmit = async (command: string) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === activeTab
-          ? {
-              ...tab,
-              commandHistory: [...tab.commandHistory, command],
-              historyIndex: tab.commandHistory.length,
-            }
-          : tab,
-      ),
-    );
-
-    const currentDirectory =
-      tabs.find((tab) => tab.id === activeTab)?.directory || defaultDirectory;
-
-    const newCommandLine: OutputLine = {
-      id: Date.now().toString(),
-      content: `$ ${command}`,
-      type: "command",
-    };
-
+    // Handle clear command first
     if (command.trim().toLowerCase() === "clear") {
       setTabs((prevTabs) =>
         prevTabs.map((tab) =>
@@ -74,12 +54,11 @@ export const useTerminal = (initialDirectory?: string) => {
       return;
     }
 
-    const result = await executeCommand(command);
-
-    const outputLine: OutputLine = {
+    // Add command to history and show it in output
+    const commandLine: OutputLine = {
       id: Date.now().toString(),
-      content: result.content,
-      type: result.type,
+      content: `$ ${command}`,
+      type: "command",
     };
 
     setTabs((prevTabs) =>
@@ -87,11 +66,54 @@ export const useTerminal = (initialDirectory?: string) => {
         tab.id === activeTab
           ? {
               ...tab,
-              outputLines: [...tab.outputLines, newCommandLine, outputLine],
+              commandHistory: [...tab.commandHistory, command],
+              historyIndex: tab.commandHistory.length,
+              outputLines: [...tab.outputLines, commandLine],
             }
           : tab,
       ),
     );
+
+    try {
+      // Execute command and get result
+      const result = await executeCommand(command);
+
+      // Add output to the terminal
+      const outputLine: OutputLine = {
+        id: (Date.now() + 1).toString(),
+        content: result.content,
+        type: result.type,
+      };
+
+      setTabs((prevTabs) =>
+        prevTabs.map((tab) =>
+          tab.id === activeTab
+            ? {
+                ...tab,
+                outputLines: [...tab.outputLines, outputLine],
+              }
+            : tab,
+        ),
+      );
+    } catch (error) {
+      // Handle error output
+      const errorLine: OutputLine = {
+        id: (Date.now() + 1).toString(),
+        content: error instanceof Error ? error.message : "An error occurred",
+        type: "error",
+      };
+
+      setTabs((prevTabs) =>
+        prevTabs.map((tab) =>
+          tab.id === activeTab
+            ? {
+                ...tab,
+                outputLines: [...tab.outputLines, errorLine],
+              }
+            : tab,
+        ),
+      );
+    }
   };
 
   return {
