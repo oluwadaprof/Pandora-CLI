@@ -4,6 +4,7 @@ import SidePanel from "../SidePanel";
 import { TerminalInterfaceProps } from "@/types/terminal";
 import { ANIMATION_CONFIG } from "@/constants/terminal";
 import { useTerminal } from "@/hooks/useTerminal";
+import { useCollaboration } from "@/hooks/useCollaboration";
 import TerminalHeader from "./TerminalHeader";
 import TerminalContent from "./TerminalContent";
 import Onboarding from "./Onboarding";
@@ -29,6 +30,8 @@ const TerminalInterface = ({
     handleCommandSubmit,
     activeTabData,
   } = useTerminal(initialDirectory);
+
+  const { session, createSession, updateCursorPosition } = useCollaboration();
 
   const [showOnboarding, setShowOnboarding] = useState(false);
 

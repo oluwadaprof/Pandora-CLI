@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
+import type { UserProfile } from "@/types/supabase";
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   loading: boolean;
   signInWithGithub: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -11,27 +13,78 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user profile
   useEffect(() => {
-    // Check active sessions and sets the user
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (error) throw error;
+        setProfile(data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    if (user?.id) {
+      fetchProfile(user.id);
+    } else {
+      setProfile(null);
+    }
+  }, [user]);
+
+  // Subscribe to auth changes
+  useEffect(() => {
+    // Check active sessions
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Subscribe to profile changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const profileSubscription = supabase
+      .channel("profile-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          setProfile(payload.new as UserProfile);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      profileSubscription.unsubscribe();
+    };
+  }, [user?.id]);
 
   const signInWithGithub = async () => {
     try {
@@ -57,6 +110,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setUser(null);
+      setProfile(null);
     } catch (error) {
       console.error("Error signing out:", error);
       throw error;
@@ -64,18 +119,18 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGithub, signOut }}>
+    <AuthContext.Provider
+      value={{ user, profile, loading, signInWithGithub, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-function useAuth() {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
-
-export { AuthProvider, useAuth };
