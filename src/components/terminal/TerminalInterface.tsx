@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SidePanel from "../SidePanel";
 import { TerminalInterfaceProps } from "@/types/terminal";
 import { ANIMATION_CONFIG } from "@/constants/terminal";
 import { useTerminal } from "@/hooks/useTerminal";
@@ -88,7 +89,7 @@ const TerminalInterface = ({
       <AnimatePresence>
         <motion.div
           ref={terminalRef}
-          className="flex flex-col bg-[#1C1C1C] text-white rounded-lg overflow-hidden border border-zinc-800 relative"
+          className="flex bg-[#1C1C1C] text-white rounded-lg overflow-hidden border border-zinc-800 relative"
           style={{
             width: size.width,
             height: size.height,
@@ -97,23 +98,25 @@ const TerminalInterface = ({
           }}
           {...ANIMATION_CONFIG}
         >
-          <ResizeHandles onResize={handleResize} />
-          <TerminalHeader
-            tabs={tabs}
-            activeTab={activeTab}
-            onReorder={setTabs}
-            onTabClick={setActiveTab}
-            onTabClose={closeTab}
-            onAddTab={addTab}
-          />
+          <div className="flex-1 flex flex-col">
+            <ResizeHandles onResize={handleResize} />
+            <TerminalHeader
+              tabs={tabs}
+              activeTab={activeTab}
+              onReorder={setTabs}
+              onTabClick={setActiveTab}
+              onTabClose={closeTab}
+              onAddTab={addTab}
+            />
 
-          <TerminalContent
-            outputLines={activeTabData?.outputLines || []}
-            currentDirectory={activeTabData?.directory}
-            isPanelOpen={isPanelOpen}
-            onPanelToggle={() => setIsPanelOpen(!isPanelOpen)}
-            onCommandSubmit={handleCommand}
-          />
+            <TerminalContent
+              outputLines={activeTabData?.outputLines || []}
+              currentDirectory={activeTabData?.directory}
+              isPanelOpen={isPanelOpen}
+              onPanelToggle={() => setIsPanelOpen(!isPanelOpen)}
+              onCommandSubmit={handleCommand}
+            />
+          </div>
         </motion.div>
       </AnimatePresence>
 

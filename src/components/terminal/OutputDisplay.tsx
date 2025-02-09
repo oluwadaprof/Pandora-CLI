@@ -28,18 +28,7 @@ const OutputDisplay = ({
     }
   }, [lines]);
 
-  // Split directory into username and path
-  const [username, ...pathParts] = currentDirectory.split("/");
-  const path = `~/${pathParts.join("/")}`;
-
-  // Group command and its output together
-  const groupedLines: { command: OutputLine; output?: OutputLine }[] = [];
-  for (let i = 0; i < lines.length; i += 2) {
-    groupedLines.push({
-      command: lines[i],
-      output: lines[i + 1],
-    });
-  }
+  const path = "C:\\Users\\user>"
 
   return (
     <div className="absolute inset-0 bg-black rounded-t-lg">
@@ -47,11 +36,11 @@ const OutputDisplay = ({
         className="h-full overflow-y-auto scrollbar-none pr-4"
         ref={viewportRef}
       >
-        <div className="p-4 space-y-4 font-mono text-sm" ref={scrollRef}>
+        <div className="p-4 space-y-2 font-mono text-sm" ref={scrollRef}>
           <AnimatePresence initial={false}>
-            {groupedLines.map(({ command, output }) => (
+            {lines.map((line, index) => (
               <motion.div
-                key={command.id}
+                key={line.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
@@ -62,27 +51,31 @@ const OutputDisplay = ({
                 }}
                 className="space-y-1"
               >
-                <div className="space-y-2">
+                {line.type === "command" ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-[#87d441] flex items-center gap-1">
-                      <Folder className="w-3.5 h-3.5" />
-                      {username}
+                    <span className="text-[#00ff00] flex items-center gap-2">
+                      <Folder className="w-4 h-4" />
+                      <span>PS</span>
+                      <span>C:\Users\user></span>
                     </span>
-                    <span className="text-[#c678dd]">MINGW64</span>
-                    <span className="text-[#61afef]">{path}</span>
-                    <span className="text-[#87d441] font-bold">$</span>
-                    <span className="text-white">
-                      {command.content.replace("$ ", "")}
-                    </span>
+                    <span className="text-[#ff69b4]">MINGW64</span>
+                    <span className="text-[#00bfff]">~/Desktop</span>
+                    <span className="text-[#00ff00]">$</span>
+                    <span className="text-white">{line.content}</span>
                   </div>
-                  {output && (
-                    <div
-                      className={`pl-5 ${output.type === "error" ? "text-red-400" : "text-gray-300"}`}
-                    >
-                      <span>{output.content}</span>
+                ) : (
+                  <div className="flex">
+                    <div className="relative w-6 mr-2">
+                      <div className="absolute left-0 top-0 w-[2px] h-full bg-gray-600"></div>
+                      <div className="absolute left-0 top-1/2 w-6 h-[2px] bg-gray-600"></div>
                     </div>
-                  )}
-                </div>
+                    <div
+                      className={`flex-1 ${line.type === "error" ? "text-red-500" : "text-gray-300"}`}
+                    >
+                      {line.content}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>

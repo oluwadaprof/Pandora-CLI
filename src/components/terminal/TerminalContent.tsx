@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelRight } from "lucide-react";
 import { OutputLine } from "@/types/terminal";
@@ -22,6 +22,11 @@ const TerminalContent = ({
   onPanelToggle,
   onCommandSubmit,
 }: TerminalContentProps) => {
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const commandHistory = outputLines
+    .filter((line) => line.type === "command")
+    .map((line) => line.content);
+
   return (
     <div className="flex-1 flex bg-[#1C1C1C] relative">
       <div className="flex-1 flex flex-col h-full">
@@ -38,22 +43,26 @@ const TerminalContent = ({
           </button>
           <AnimatePresence>
             {isPanelOpen && (
-              <motion.div
-                {...PANEL_ANIMATION_CONFIG}
-                className="absolute top-12 right-2 z-50"
-              >
-                <FloatingPanel onClose={onPanelToggle} />
-              </motion.div>
+              <>
+                <div className="fixed inset-0 z-40" onClick={onPanelToggle} />
+                <motion.div
+                  {...PANEL_ANIMATION_CONFIG}
+                  className="absolute top-12 right-2 z-50"
+                >
+                  <FloatingPanel
+                    onClose={onPanelToggle}
+                    onCommandSubmit={onCommandSubmit}
+                  />
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>
         <CommandPrompt
           onCommandSubmit={onCommandSubmit}
-          commandHistory={outputLines
-            .filter((line) => line.type === "command")
-            .map((line) => line.content.replace("$ ", ""))}
-          historyIndex={-1}
-          onHistoryChange={(index) => {}}
+          commandHistory={commandHistory}
+          historyIndex={historyIndex}
+          onHistoryChange={setHistoryIndex}
         />
       </div>
     </div>

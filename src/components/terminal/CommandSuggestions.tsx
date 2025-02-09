@@ -21,7 +21,7 @@ const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        className="absolute bottom-full left-0 w-full mb-2 bg-zinc-800 border border-zinc-700 rounded-md overflow-hidden shadow-lg"
+        className="absolute bottom-full left-4 w-[20%] mb-2 bg-zinc-800/80 backdrop-blur-sm border border-zinc-700/50 rounded-md overflow-hidden shadow-lg"
       >
         <div className="p-1 space-y-0.5">
           {suggestions.map((suggestion, index) => (

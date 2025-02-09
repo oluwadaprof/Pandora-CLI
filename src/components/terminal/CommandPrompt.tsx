@@ -48,9 +48,10 @@ const CommandPrompt = ({
     }
 
     commandPredictor.addCommand(corrected);
-    onCommandSubmit(corrected);
+    await onCommandSubmit(corrected);
     setCommand("");
     setSavedCommand("");
+    setShowSuggestions(false);
     onHistoryChange(-1);
   };
 
@@ -100,7 +101,7 @@ const CommandPrompt = ({
   };
 
   return (
-    <div className="flex flex-col p-2 bg-gray-900 border-t border-gray-700 relative">
+    <div className="flex flex-col p-2 bg-gray-900 border-t border-gray-700 relative z-50">
       <CommandSuggestions
         suggestions={suggestions}
         onSelect={handleSuggestionSelect}

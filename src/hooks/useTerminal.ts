@@ -19,7 +19,7 @@ export const useTerminal = (initialDirectory?: string) => {
   const [tabs, setTabs] = useState<Tab[]>([
     createNewTab(initialDirectory || defaultDirectory),
   ]);
-  const [activeTab, setActiveTab] = useState("1");
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const addTab = () => {
@@ -57,10 +57,11 @@ export const useTerminal = (initialDirectory?: string) => {
     // Add command to history and show it in output
     const commandLine: OutputLine = {
       id: Date.now().toString(),
-      content: `$ ${command}`,
+      content: command,
       type: "command",
     };
 
+    // Update tabs with the command first
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTab

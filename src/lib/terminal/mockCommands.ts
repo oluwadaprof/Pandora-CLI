@@ -92,30 +92,15 @@ export const mockCommands = {
 };
 
 export const bashHelpText = `
-Available Commands:
-
-File System Navigation:
-  pwd           - Print working directory
-  ls [options]  - List directory contents
-  cd [dir]      - Change directory
-
-File Operations:
-  cat <file>    - Display file contents
-  touch <file>  - Create empty file
-  mkdir [dir]   - Create directory
-  rm [options]  - Remove files/directories
-
-System Information:
-  uname         - Print system information
-  whoami        - Print current user
-
-Process Management:
-  ps            - List processes
-
-Network Commands:
-  ping          - Test network connectivity
-
-Package Management:
-  npm           - Node.js package manager
-  yarn          - Alternative package manager
-`;
+Keyboard Shortcuts:
+└ Ctrl + L - Clear screen
+└ ↑ (Up Arrow) - Run last command
+└ Ctrl + Shift + T - New Tab
+Commands:
+└ pwd - Print working directory
+└ ls - List directory contents
+└ cd - Change directory
+└ cat - Display file contents
+└ touch - Create empty file
+└ mkdir - Create directory
+└ rm - Remove files/directories`;
