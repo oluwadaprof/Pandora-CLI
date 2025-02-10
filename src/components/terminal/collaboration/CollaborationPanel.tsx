@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, UserPlus, X, Crown, Share2, Copy } from "lucide-react";
+import { Users, UserPlus, X, Crown, Share2, Copy, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -14,21 +14,27 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "@/components/ui/use-toast";
 import type { SessionMember } from "@/types/supabase";
+import { cn } from "@/lib/utils";
 
 interface CollaborationPanelProps {
   sessionId?: string;
   onCreateSession?: () => void;
+  onJoinSession?: (sessionId: string) => void;
 }
 
 const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
   sessionId,
   onCreateSession,
+  onJoinSession,
 }) => {
   const { user } = useAuth();
   const [members, setMembers] = useState<SessionMember[]>([]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [isOwner, setIsOwner] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionUrl, setSessionUrl] = useState("");
+  const [sessionIdInput, setSessionIdInput] = useState("");
 
   useEffect(() => {
     if (!sessionId || !user) return;
@@ -93,6 +99,7 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
     if (!sessionId || !inviteEmail) return;
 
     try {
+      setIsLoading(true);
       // First get the user ID from the email
       const { data: userData } = await supabase
         .from("profiles")
@@ -117,6 +124,10 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
         cursor_color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       });
 
+      // Generate a session URL
+      const sessionUrl = `${window.location.origin}/join/${sessionId}`;
+      setSessionUrl(sessionUrl);
+
       toast({
         title: "Invitation sent",
         description: "User has been added to the session",
@@ -131,6 +142,8 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
         description: "Failed to invite user",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -181,31 +194,48 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="space-y-4 p-2">
+        <div className="space-y-4 p-2 flex">
           {!sessionId ? (
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={onCreateSession}
-              >
-                Start New Session
-              </Button>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-zinc-700" />
+            <div className="space-y-2 w-full">
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex w-full gap-1.5">
+                  <Input
+                    placeholder="Session ID"
+                    value={sessionIdInput}
+                    onChange={(e) => setSessionIdInput(e.target.value)}
+                    className="flex-1 h-7 text-xs bg-zinc-900/50 border-zinc-700/50 focus-visible:ring-zinc-700"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50"
+                    onClick={() => {
+                      if (!user) {
+                        toast({
+                          title: "Authentication required",
+                          description: "Please sign in to join a session",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      onJoinSession?.(sessionIdInput);
+                    }}
+                    disabled={!sessionIdInput || isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      "Join"
+                    )}
+                  </Button>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-zinc-900 px-2 text-zinc-500">or</span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Session ID"
-                  className="flex-1 h-9 text-xs"
-                />
-                <Button variant="outline" size="sm" className="h-9">
-                  Join
+                <Button
+                  variant="ghost"
+                  className="w-full h-7 text-xs text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50"
+                  onClick={onCreateSession}
+                  disabled={!user || isLoading}
+                >
+                  Start New Session
                 </Button>
               </div>
             </div>
@@ -213,24 +243,26 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-zinc-300">Members</h4>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   {isOwner && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-7 px-2 text-xs gap-1.5 text-zinc-400 hover:text-zinc-300"
                       onClick={() => setShowInvite(!showInvite)}
                     >
-                      <UserPlus className="h-4 w-4" />
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Invite
                     </Button>
                   )}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-7 px-2 text-xs gap-1.5 text-zinc-400 hover:text-zinc-300"
                     onClick={handleCopySessionId}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy ID
                   </Button>
                 </div>
               </div>
@@ -253,31 +285,61 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
                           onClick={() => setShowInvite(false)}
                           className="text-zinc-500 hover:text-zinc-400"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         <Input
                           placeholder="user@example.com"
                           value={inviteEmail}
                           onChange={(e) => setInviteEmail(e.target.value)}
-                          className="flex-1 h-8 text-xs"
+                          className="flex-1 h-7 text-xs bg-zinc-900/50 border-zinc-700/50 focus-visible:ring-zinc-700"
                         />
                         <Button
                           onClick={handleInvite}
                           size="sm"
-                          className="h-8"
+                          disabled={isLoading || !inviteEmail}
+                          className={cn(
+                            "h-7 px-2.5 text-xs",
+                            isLoading && "cursor-not-allowed opacity-50",
+                          )}
                         >
-                          Invite
+                          {isLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            "Invite"
+                          )}
                         </Button>
                       </div>
+                      {sessionUrl && (
+                        <div className="mt-2 p-2 bg-zinc-900/50 rounded border border-zinc-800 text-xs">
+                          <div className="flex items-center justify-between gap-2 text-zinc-400">
+                            <span className="truncate">{sessionUrl}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => {
+                                navigator.clipboard.writeText(sessionUrl);
+                                toast({
+                                  title: "Copied!",
+                                  description:
+                                    "Session URL copied to clipboard",
+                                });
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <ScrollArea className="h-[200px]">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {members.map((member) => (
                     <div
                       key={member.id}
@@ -296,7 +358,7 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
                           {member.user.user_metadata.user_name[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-zinc-300 flex-1">
+                      <span className="text-sm text-zinc-300 flex-1 truncate">
                         {member.user.user_metadata.user_name}
                       </span>
                       {member.role === "owner" && (
@@ -310,7 +372,7 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full h-7 text-xs border-zinc-700/50 hover:bg-zinc-800/50 hover:text-zinc-300"
                 onClick={handleLeaveSession}
               >
                 Leave Session
