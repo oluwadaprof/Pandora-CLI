@@ -50,7 +50,7 @@ const TabItem = ({
                 {showDrag && (
                   <div className="flex-shrink-0 ml-auto">
                     <X
-                      className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity close-button"
+                      className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity close-button ml-10"
                       onClick={(e) => {
                         e.stopPropagation();
                         onClose(tab.id);

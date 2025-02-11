@@ -64,7 +64,7 @@ const SidePanel = () => {
 
       <div className="p-2 border-t border-zinc-800">
         {user ? (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-zinc-800/50">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-zinc-800/50">
             <img
               src={user.user_metadata.avatar_url}
               alt={user.user_metadata.user_name}

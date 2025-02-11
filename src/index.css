@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes gradient-y {
+  0% {
+    background-position: 50% -100%;
+  }
+  50% {
+    background-position: 50% 200%;
+  }
+  100% {
+    background-position: 50% -100%;
+  }
+}
+
+@keyframes gradient-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border {
+  background: linear-gradient(
+    45deg,
+    rgba(74, 222, 128, 0.4),
+    rgba(168, 85, 247, 0.4),
+    rgba(59, 130, 246, 0.4),
+    rgba(74, 222, 128, 0.4)
+  );
+  background-size: 400% 400%;
+  animation: gradient-y 8s ease infinite;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

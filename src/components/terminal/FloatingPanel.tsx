@@ -7,15 +7,15 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth";
 import { useCollaboration } from "@/hooks/useCollaboration";
 import {
-  Search,
-  X,
-  Star,
-  Bot,
-  Users,
-  HelpCircle,
-  Settings,
-  LogIn,
-  LogOut,
+  SearchCode,
+  XCircle,
+  Sparkles,
+  Cpu,
+  UsersRound,
+  HelpCircleIcon,
+  Settings2,
+  GithubIcon,
+  LogOutIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -139,19 +139,19 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
             onClick={handleSearchToggle}
             className="text-zinc-400 hover:text-zinc-300"
           >
-            <Search className="w-[18px] h-[18px]" />
+            <SearchCode className="w-[18px] h-[18px]" />
           </button>
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-zinc-300"
           >
-            <X className="w-[18px] h-[18px]" />
+            <XCircle className="w-[18px] h-[18px]" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 scrollbar-none">
         <div className="p-4">
           <Accordion
             type="single"
@@ -162,21 +162,21 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
             <AccordionItem value="favorites" className="border-none">
               <AccordionTrigger className="hover:no-underline py-2 px-3 hover:bg-zinc-800/50 rounded-md transition-colors">
                 <div className="flex items-center gap-2 text-sm text-zinc-400">
-                  <Star className="h-4 w-4" />
+                  <Sparkles className="h-4 w-4" />
                   <span>Favorites</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-2 p-2">
                   {favoriteCommands.length > 0 ? (
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {favoriteCommands.map((cmd) => (
                         <button
                           key={cmd.id}
                           onClick={() => onCommandSubmit?.(cmd.command)}
-                          className="w-full px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800/50 rounded-md transition-colors flex items-center gap-2"
+                          className="w-full px-3 py-1.5 text-left text-sm text-zinc-300 hover:bg-zinc-800/50 rounded-md transition-colors flex items-center gap-2"
                         >
-                          <Star className="w-3.5 h-3.5 text-yellow-500" />
+                          <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
                           <span className="font-mono">{cmd.command}</span>
                         </button>
                       ))}
@@ -190,33 +190,19 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="ai" className="border-none">
-              <AccordionTrigger className="hover:no-underline py-2 px-3 hover:bg-zinc-800/50 rounded-md transition-colors">
+            <AccordionItem value="ai" className="border-none opacity-50">
+              <AccordionTrigger
+                className="hover:no-underline py-2 px-3 rounded-md transition-colors cursor-not-allowed"
+                disabled
+              >
                 <div className="flex items-center gap-2 text-sm text-zinc-400">
-                  <Bot className="h-4 w-4" />
+                  <Cpu className="h-4 w-4" />
                   <span>AI Assistant</span>
-                  <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-purple-500/20 text-purple-300 rounded">
-                    Beta
+                  <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-zinc-500/20 text-zinc-300 rounded">
+                    Coming Soon
                   </span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2 p-2">
-                  <div className="space-y-1 text-sm text-zinc-400">
-                    <p>AI features available:</p>
-                    <ul className="list-disc pl-4 space-y-1">
-                      <li>Command suggestions</li>
-                      <li>Error debugging</li>
-                      <li>Natural language to command</li>
-                      <li>Code explanations</li>
-                    </ul>
-                  </div>
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    <Bot className="w-4 h-4 mr-2" />
-                    Configure AI
-                  </Button>
-                </div>
-              </AccordionContent>
             </AccordionItem>
 
             <CollaborationPanel
@@ -234,13 +220,12 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
         <div className="p-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {user ? (
-              <div className="relative">
-                <div className="absolute inset-[-2px] rounded-full bg-[conic-gradient(from_0deg,#3b82f6,#8b5cf6,#d946ef,#f43f5e,#f97316,#3b82f6)] animate-spin-slow blur-[1px] opacity-50" />
-                <div className="relative w-7 h-7 rounded-full p-[2px] bg-[conic-gradient(from_0deg,#3b82f6,#8b5cf6,#d946ef,#f43f5e,#f97316,#3b82f6)]">
+              <div className="w-7 h-7 rounded-full border-2 border-emerald-500">
+                <div className="w-full h-full rounded-full overflow-hidden p-[2px] bg-zinc-900">
                   <img
                     src={user.user_metadata.avatar_url}
                     alt={user.user_metadata.user_name}
-                    className="w-full h-full rounded-full border border-zinc-900 object-cover"
+                    className="w-full h-full rounded-full object-cover"
                   />
                 </div>
               </div>
@@ -249,25 +234,25 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
                 onClick={signInWithGithub}
                 className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-300"
               >
-                <LogIn className="w-4 h-4" />
+                <GithubIcon className="w-4 h-4" />
                 Sign in with GitHub
               </button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors">
-              <HelpCircle className="w-4 h-4" />
+              <HelpCircleIcon className="w-4 h-4" />
             </button>
             {user && (
               <>
                 <button className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors">
-                  <Settings className="w-4 h-4" />
+                  <Settings2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={signOut}
                   className="p-2 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOutIcon className="w-4 h-4" />
                 </button>
               </>
             )}

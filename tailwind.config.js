@@ -19,6 +19,7 @@ module.exports = {
     extend: {
       animation: {
         "spin-slow": "spin 3s linear infinite",
+        "gradient-y": "gradient-y 8s ease infinite",
       },
       colors: {
         border: "hsl(var(--border))",
